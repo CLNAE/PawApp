@@ -1,40 +1,38 @@
+cat > db.php <<'EOF'
 <?php
 class Database {
-    // Instanța singleton
     private static $instance = null;
-    // Conexiunea PDO
-    private $pdo;
+    private $connection;
 
-    // Constructorul privat previne instanțierea externă
+    private $host = 'db';              // numele serviciului MySQL din docker-compose.yml
+    private $db_name = 'ac790_proiect';
+    private $username = 'user';
+    private $password = 'pass';
+
+    // Constructor privat – nu permite instanțierea directă
     private function __construct() {
-        $host     = '10.13.11.6';
-        $dbname   = 'ac790_proiect';
-        $username = 'ac790';
-        $password = 'vxsy621t';
-        $dsn      = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
-
         try {
-            $this->pdo = new PDO($dsn, $username, $password);
-            // Configurăm modul de eroare la excepții și modul de fetch
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $this->connection = new PDO(
+                "mysql:host={$this->host};dbname={$this->db_name};charset=utf8mb4",
+                $this->username,
+                $this->password
+            );
+            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            // Oprirea execuției și afișarea erorii
             die("Eroare la conexiunea cu baza de date: " . $e->getMessage());
         }
     }
 
-    // Returnează instanța singleton a clasei Database
     public static function getInstance() {
-        if (!self::$instance) {
+        if (self::$instance === null) {
             self::$instance = new Database();
         }
         return self::$instance;
     }
 
-    // Metodă publică pentru a obține conexiunea PDO
     public function getConnection() {
-        return $this->pdo;
+        return $this->connection;
     }
 }
 ?>
+EOF
